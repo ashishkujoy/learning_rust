@@ -1,7 +1,7 @@
 use std::cell::{Cell, RefCell, Ref};
 use crate::transaction::{Transaction, TransactionType};
 
-struct Account {
+pub struct Account {
     account_number: String,
     balance: Cell<usize>,
     transactions: RefCell<Vec<Transaction>>,
@@ -10,7 +10,7 @@ struct Account {
 unsafe impl Sync for Account {}
 
 impl Account {
-    fn new(account_number: String) -> Self {
+    pub fn new(account_number: String) -> Self {
         Account {
             account_number,
             balance: Cell::new(0),
@@ -18,7 +18,7 @@ impl Account {
         }
     }
 
-    fn perform_transaction(&self, transaction: Transaction) -> Result<(), String> {
+    pub fn perform_transaction(&self, transaction: Transaction) -> Result<(), String> {
         let current_balance = self.balance.get();
         let mut transactions = self.transactions.borrow_mut();
         match transaction.transaction_type {
@@ -37,6 +37,10 @@ impl Account {
                 }
             }
         }
+    }
+
+    pub fn has_account_number(&self, account_number: &str) -> bool {
+        self.account_number == account_number
     }
 
     fn transactions_history(&self) -> Ref<'_, Vec<Transaction>> {
