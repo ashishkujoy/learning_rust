@@ -114,4 +114,13 @@ mod tests {
 
         assert!(bank.check_balance("0123").is_none())
     }
+
+    #[test]
+    fn should_give_account_number_in_increasing_order_starting_from_1() {
+        let bank = Bank::new();
+
+        for i in 1..10 {
+             assert_eq!(bank.generate_account_number(), i.to_string())
+        }
+    }
 }
