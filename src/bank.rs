@@ -1,4 +1,5 @@
-use std::cell::{RefCell, Cell};
+use std::cell::{Cell, RefCell};
+
 use crate::account;
 use crate::account::Account;
 use crate::transaction::Transaction;
@@ -22,24 +23,22 @@ impl Bank {
     }
 
     pub fn deposit_cash(&self, account_number: &str, amount: usize) -> Result<(), String> {
-        self.accounts
-            .borrow_mut()
-            .iter()
-            .find(|account| account.has_account_number(account_number))
-            .map(|account| {
-                account.perform_transaction(Transaction::credit_of_amount(amount)).unwrap();
-                Ok(())
-            })
-            .unwrap_or(Err("Account not found".to_string()))
+        self.map_account(account_number, Box::new(move |account| {
+            account.perform_transaction(Transaction::credit_of_amount(amount)).unwrap();
+            Ok(())
+        })).unwrap_or(Err("Account not found".to_string()))
     }
 
     pub fn check_balance(&self, account_number: &str) -> Option<usize> {
+        self.map_account(account_number, Box::new(|account| { account.get_balance() }))
+    }
+
+    fn map_account<T>(&self, account_number: &str, mapper: Box<dyn FnOnce(&Account) -> T>) -> Option<T> {
         self.accounts
             .borrow_mut()
             .iter()
             .find(|account| account.has_account_number(account_number))
-            .map(|account| Some(account.get_balance()))
-            .unwrap_or(None)
+            .map(mapper)
     }
 
     fn generate_account_number(&self) -> String {
