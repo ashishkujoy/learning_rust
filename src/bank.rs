@@ -1,6 +1,5 @@
 use std::cell::{Cell, RefCell};
 
-use crate::account;
 use crate::account::Account;
 use crate::transaction::Transaction;
 
@@ -23,16 +22,11 @@ impl Bank {
     }
 
     pub fn deposit_cash(&self, account_number: &str, amount: usize) -> Result<(), String> {
-        self.map_account(account_number, Box::new(move |account| {
-            account.perform_transaction(Transaction::credit_of_amount(amount)).unwrap();
-            Ok(())
-        })).unwrap_or(Err("Account not found".to_string()))
+        self.perform_transaction(account_number, Transaction::credit_of_amount(amount))
     }
 
     pub fn withdraw_cash(&self, account_number: &str, amount: usize) -> Result<(), String> {
-        self.map_account(account_number, Box::new(move |account| {
-            account.perform_transaction(Transaction::debit_of_amount(amount))
-        })).unwrap_or(Err("Account not found".to_string()))
+        self.perform_transaction(account_number, Transaction::debit_of_amount(amount))
     }
 
     pub fn check_balance(&self, account_number: &str) -> Option<usize> {
@@ -52,6 +46,12 @@ impl Bank {
         self.accounts_count.set(accounts_count + 1);
         let account_number = (accounts_count + 1).to_string();
         account_number
+    }
+
+    fn perform_transaction(&self, account_number: &str, transaction: Transaction) -> Result<(), String> {
+        self.map_account(account_number, Box::new(move |account| {
+            account.perform_transaction(transaction)
+        })).unwrap_or(Err("Account not found".to_string()))
     }
 }
 
@@ -76,7 +76,7 @@ mod tests {
         let account_number = bank.create_account();
         bank.create_account();
 
-        bank.deposit_cash(&account_number, 1400 as usize);
+        bank.deposit_cash(&account_number, 1400 as usize).unwrap();
         assert_eq!(bank.check_balance(&account_number), Some(1400 as usize));
     }
 
@@ -85,8 +85,8 @@ mod tests {
         let bank = Bank::new();
         let account_number = bank.create_account();
 
-        bank.deposit_cash(&account_number, 1400 as usize);
-        bank.withdraw_cash(&account_number, 400 as usize);
+        bank.deposit_cash(&account_number, 1400 as usize).unwrap();
+        bank.withdraw_cash(&account_number, 400 as usize).unwrap();
         assert_eq!(bank.check_balance(&account_number), Some(1000 as usize));
     }
 
@@ -95,7 +95,7 @@ mod tests {
         let bank = Bank::new();
         let account_number = bank.create_account();
 
-        bank.deposit_cash(&account_number, 1400 as usize);
+        bank.deposit_cash(&account_number, 1400 as usize).unwrap();
         assert!(bank.withdraw_cash(&account_number, 2000 as usize).is_err())
 
     }
