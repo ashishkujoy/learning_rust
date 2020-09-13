@@ -31,6 +31,12 @@ impl Bank {
         self.map_account(account_number, Box::new(|account| { account.get_balance() }))
     }
 
+    pub fn get_transactions(&self, account_number: &str) -> Option<Vec<Transaction>> {
+        self.map_account(account_number, Box::new(|account| {
+            account.transactions_history().clone()
+        }))
+    }
+
     fn map_account<T>(&self, account_number: &str, mapper: Box<dyn FnOnce(&Account) -> T>) -> Option<T> {
         self.accounts
             .borrow_mut()
@@ -95,7 +101,6 @@ mod tests {
 
         bank.deposit_cash(&account_number, 1400 as usize).unwrap();
         assert!(bank.withdraw_cash(&account_number, 2000 as usize).is_err())
-
     }
 
     #[test]
@@ -118,7 +123,33 @@ mod tests {
         let bank = Bank::new();
 
         for i in 1..10 {
-             assert_eq!(bank.generate_account_number(), i.to_string())
+            assert_eq!(bank.generate_account_number(), i.to_string())
         }
+    }
+
+    #[test]
+    fn should_give_transaction_history_of_an_account() {
+        let bank = Bank::new();
+        let account_number = bank.create_account();
+
+        bank.deposit_cash(&account_number, 1400 as usize).unwrap();
+        bank.withdraw_cash(&account_number, 400 as usize).unwrap();
+
+        let transactions = bank.get_transactions(&account_number);
+        assert_eq!(transactions, Some(vec![Transaction::credit_of_amount(1400 as usize), Transaction::debit_of_amount(400 as usize)]))
+    }
+
+    #[test]
+    fn should_give_none_for_transaction_history_when_account_does_not_exists() {
+        let bank = Bank::new();
+
+        assert!(bank.get_transactions("12").is_none())
+    }
+
+    #[test]
+    fn should_give_empty_vector_for_transaction_history_when_account_does_not_have_any_transaction() {
+        let bank = Bank::new();
+        let account_number = bank.create_account();
+        assert_eq!(bank.get_transactions(&account_number), Some(vec![]))
     }
 }

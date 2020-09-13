@@ -1,10 +1,10 @@
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub struct Transaction {
     pub amount: usize,
     pub transaction_type: TransactionType,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum TransactionType {
     CashDeposit,
     CashWithdrawal,

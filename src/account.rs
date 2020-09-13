@@ -42,7 +42,7 @@ impl Account {
         self.account_number == account_number
     }
 
-    fn transactions_history(&self) -> Ref<'_, Vec<Transaction>> {
+    pub fn transactions_history(&self) -> Ref<'_, Vec<Transaction>> {
         self.transactions.borrow()
     }
 
