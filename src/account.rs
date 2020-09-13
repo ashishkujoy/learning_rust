@@ -1,4 +1,5 @@
-use std::cell::{Cell, RefCell, Ref};
+use std::cell::{Cell, Ref, RefCell};
+
 use crate::transaction::{Transaction, TransactionType};
 
 pub struct Account {
@@ -6,8 +7,6 @@ pub struct Account {
     balance: Cell<usize>,
     transactions: RefCell<Vec<Transaction>>,
 }
-
-unsafe impl Sync for Account {}
 
 impl Account {
     pub fn new(account_number: String) -> Self {

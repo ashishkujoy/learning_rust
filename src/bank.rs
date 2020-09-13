@@ -8,8 +8,6 @@ struct Bank {
     accounts: RefCell<Vec<Account>>,
 }
 
-unsafe impl Sync for Bank {}
-
 impl Bank {
     pub fn new() -> Self {
         Bank { accounts_count: Cell::new(0), accounts: RefCell::new(vec![]) }
